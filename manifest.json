@@ -4,7 +4,7 @@
     "description": "Add, edit, remove, export and import local storage and session storage data",
     "icons": { "128": "icon.png"},
     "manifest_version": 2,
-    "name": "LocalStorage Manager (unoffical)",
+    "name": "LocalStorage Manager",
     "permissions": ["activeTab", "clipboardWrite"],
-    "version": "2.4.1"
+    "version": "1.2.4"
 }
