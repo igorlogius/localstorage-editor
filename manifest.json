@@ -1,0 +1,10 @@
+{
+    "author": "igorlogius",
+    "browser_action": { "default_popup": "popup.html" },
+    "description": "Add, edit, remove, export and import local storage and session storage data",
+    "icons": { "128": "icon.png"},
+    "manifest_version": 2,
+    "name": "LocalStorage Manager (unoffical)",
+    "permissions": ["activeTab", "clipboardWrite"],
+    "version": "2.4.1"
+}
