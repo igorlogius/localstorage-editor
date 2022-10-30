@@ -1,59 +1,27 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>-</title>
-        <link rel="stylesheet" href="style.css">
-    </head>
+<head>
+    <meta charset="utf-8"></meta>
+    <title>PER Rules</title>
+    <link href="tabulator.min.css" rel="stylesheet">
+    <link href="popup.css" rel="stylesheet">
+</head>
+<body>
 
-    <body>
-        <div id="main">
-            <form action="#" spellcheck="false">
+    <fieldset>
+        <button id="addbtn" title="add new value" >&#10039; New</button>
+        <button id="delbtn" title="delete selected "> &#10005; Delete</button>
+        <button id="impbtn_wrapper" title="import from file"> &darr;Import</button>
+        <input id="impbtn" type="file" value="" style="display:none" />
+        <button id="expbtn" title="export selected"> &uarr;Export</button>
+        <button id="cpybtn" title="copy selected"> &uarr;Copy</button>
+        <button id="savbtn" title="save changes" >&#10003; Save</button>
+        <button id="discbtn" title="discard changes" >&#9888; Discard/Reload</button>
+            <div style="float:right;">
+                <a target="_blank" href="https://github.com/igorlogius/localstorage-editor/wiki/Basic-Usage" > <button> &#8505; Help </button></a>
+            </div>
+    </fieldset>
 
-                <div id="type"></div>
-
-                <div id="buttons">
-                    <button type="button" id="add">Add</button>
-                    <button type="button" id="reload">Reload</button>
-                    <button type="button" id="download">Download</button>
-                    <button type="button" id="copy">Copy all</button>
-                    <button type="button" id="import">Import</button>
-                    <button type="button" id="clear">Clear</button>
-                </div>
-
-                <div class="clear"></div>
-
-                <div id="table">
-                    <p>Loading...</p>
-                    <!--<table>
-                        <thead>
-                            <tr>
-                                <th class="td-nome">Name</th>
-                                <th class="td-value" colspan="3">Value</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            <tr>
-                                <td class="td-nome"><input type="text" value="some key" data-key="some key"></td>
-                                <td class="td-value"><input type="text" value="some value"></td>
-                                <td class="td-icon minus"><img src="minus.png"></td>
-                                <td class="td-icon open"><img src="open.png"></td>
-                            </tr>
-                        </tbody>
-                    </table>-->
-                </div>
-            </form>
-        </div>
-
-        <div id="json">
-            <button id="back">❮</button>
-            <pre id="code"></pre>
-        </div>
-
-        <div id="loading"></div>
-
-        <script src="jquery.js"></script>
-        <script src="popup.js"></script>
-    </body>
-</html>
+    <div id="mainTable" border=1 style="width:100%;" />
+    <script src="tabulator.min.js"></script>
+    <script src="popup.js"></script>
+</body>

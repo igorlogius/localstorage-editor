@@ -1,0 +1,9 @@
+body {
+    background: lightgray;
+    width: 650px;
+    padding: 3px;
+}
+
+button {
+    min-width: 5vw;
+}

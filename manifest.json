@@ -1,10 +1,33 @@
 {
     "author": "igorlogius",
-    "browser_action": { "default_popup": "popup.html" },
-    "description": "Add, edit, remove, export and import local storage and session storage data",
-    "icons": { "128": "icon.png"},
+    "background": {
+        "scripts": ["background.js"]
+    },
+    "browser_action": { 
+        "default_popup": "popup.html" 
+    },
+    "content_scripts": [
+        {
+          "js": [
+            "content.js"
+          ],
+          "matches": [
+            "<all_urls>"
+          ]
+        }
+    ],
+    "icons": { 
+        "128": "icon.png"
+    },
     "manifest_version": 2,
     "name": "LocalStorage Editor",
-    "permissions": ["activeTab", "clipboardWrite"],
-    "version": "1.2.4"
+    "options_ui": {
+        "open_in_tab": true,
+        "page": "options.html"
+    },
+    "permissions": [
+        "<all_urls>", 
+        "clipboardWrite"
+    ],
+    "version": "1.2.5"
 }

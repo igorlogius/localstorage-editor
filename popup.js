@@ -1,437 +1,252 @@
-(function(window, document, $, chrome) {
-'use strict';
+/* global browser Tabulator */
 
-var scrollPosition;
+let table = null;
 
-function htmlEscape(str, noQuotes) {
-    var map = [];
-    map['&'] = '&amp;';
-    map['<'] = '&lt;';
-    map['>'] = '&gt;';
+// button refs
+const impbtnWrp = document.getElementById('impbtn_wrapper');
+const impbtn = document.getElementById('impbtn');
+const savbtn= document.getElementById('savbtn');
+const discbtn= document.getElementById('discbtn');
+const expbtn = document.getElementById('expbtn');
+const cpybtn = document.getElementById('cpybtn');
+const delbtn = document.getElementById('delbtn');
+const addbtn = document.getElementById('addbtn');
 
-    var regex;
-
-    if (noQuotes) {
-        regex = /[&<>]/g;
-    }
-    else {
-        map['"'] = '&#34;';
-        map["'"] = '&#39;';
-        regex = /[&<>"']/g;
-    }
-
-    return ('' + str).replace(regex, function(match) {
-        return map[match];
-    });
+function hightlightChange(){
+    savbtn.style.borderColor='red';
 }
 
-function loading(value) {
-    var $loading = $('#loading');
-    var $html = $('html');
-
-    if (value) {
-        $loading.width($html.width());
-        $loading.height($html.height());
-        $loading.show();
-    }
-    else {
-        $loading.hide();
-    }
+function unhightlightChange(){
+    savbtn.style.borderColor='';
 }
 
-function getTab(callback) {
-    chrome.tabs.query({ active: true, currentWindow: true }, function(tab) {
-        callback(tab[0].id, tab[0].url);
-    });
-}
-
-function executeScript(msg, callback) {
-    getTab(function(tabId) {
-        var exec = chrome.tabs.executeScript;
-
-        exec(tabId, { code: 'var msg = ' + JSON.stringify(msg) }, function() {
-            if (chrome.runtime.lastError) {
-                console.log(chrome.runtime.lastError.message);
-                callback && callback(undefined);
-                return;
-            }
-
-            exec(tabId, { file: 'inject.js' }, function(response) {
-                callback && callback(response[0]);
-            });
-        });
-    });
-}
-
-function noData() {
-    var pClass;
-    var promptText;
-
-    if (type === 'L') {
-        pClass = 'localstorage';
-        promptText = 'local';
-    }
-    else {
-        pClass = 'sessionstorage';
-        promptText = 'session';
-    }
-    return '<p class="' + pClass + '">No ' + promptText + ' storage data found</p>';
-}
-
-function parseDeepJSON(str) {
-    if (typeof str !== 'string') {
-        return str;
-    }
-
-    try {
-        var obj = JSON.parse(str);
-
-        if (obj === null || typeof obj !== 'object') {
-            return str;
-        }
-    }
-    catch(e) {
-        return str;
-    }
-
-    var tempObj;
-
-    if (Array.isArray(obj)) {
-        tempObj = [];
-    }
-    else {
-        tempObj = {};
-    }
-
-    for (var i in obj) {
-        tempObj[i] = parseDeepJSON(obj[i]);
-    }
-
-    return tempObj;
-}
-
-
-// https://stackoverflow.com/a/7220510
-function syntaxHighlight(json) {
-    json = htmlEscape(json, true);
-
-    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
-        var cls = 'number';
-        if (/^"/.test(match)) {
-            if (/:$/.test(match)) {
-                cls = 'key';
-            } else {
-                cls = 'string';
-            }
-        } else if (/true|false/.test(match)) {
-            cls = 'boolean';
-        } else if (/null/.test(match)) {
-            cls = 'null';
-        }
-        return '<span class="' + cls + '">' + match + '</span>';
-    });
-}
-//------------------------------------------------------------------------------
-
-var type;
-var $type = $('#type');
-
-if (localStorage['type'] === 'L' || localStorage['type'] === undefined) {
-    type = 'L';
-    $type.attr('class', 'localstorage').html('L');
-}
-else {
-    type = 'S';
-    $type.attr('class', 'sessionstorage').html('S');
-}
-
-executeScript({ what: 'get', type: type }, function(response) {
-    var storage = response;
-    var str = '';
-    var key;
-    var value;
-    var size = 0;
-    var tableClass = type === 'L' ? 'localstorage' : 'sessionstorage';
-
-    if (storage === undefined) {
-        str = '<p class="error">Could not read data from this page</p>';
-    }
-
-    else {
-        str += '<table class="' + tableClass + '">';
-        str += '<thead>';
-        str += '<tr>';
-        str += '<th class="td-nome">Name</th>';
-        str += '<th class="td-value" colspan="3">Value</th>';
-        str += '</tr>';
-        str += '</thead>';
-        str += '<tbody>';
-
-        for (var i in storage) {
-            key = htmlEscape(i);
-            value = htmlEscape(storage[i]);
-
-            str += '<tr>';
-            str += '<td class="td-nome"><input type="text" value="';
-            str += key + '" data-key="' + key + '"></td>';
-            str += '<td class="td-value"><input type="text" value="';
-            str += value + '"></td>';
-            str += '<td class="td-icon minus"><img src="minus.png"></td>';
-            str += '<td class="td-icon open"><img src="open.png"></td>';
-            str += '</tr>';
-
-            size++;
-        }
-
-        str += '</tbody></table>';
-
-        if (!size) {
-            str = noData();
-        }
-    }
-
-    $('#table').html(str);
-});
-
-$('#type').click(function() {
-    if ($(this).html() === 'L') {
-        localStorage['type'] = 'S';
-    }
-    else {
-        localStorage['type'] = 'L';
-    }
-
-    location.reload();
+addbtn.addEventListener('click', async () => {
+    table.deselectRow();
+    table.addRow({
+        store: '',
+        key: '',
+        value: '',
+    },true); // add at the top
+    hightlightChange();
 });
 
 
-$('#add').click(function(e) {
-    e.preventDefault();
-
-    var key;
-    var value;
-
-    key = prompt('Enter the Storage Key:');
-
-    if (key === null) {
-        return;
-    }
-
-    value = prompt('Enter the Value for "' + key+'"');
-
-    if (value === null) {
-        return;
-    }
-
-    var message = {
-        type: type,
-        what: 'set',
-        key: key,
-        value: value
-    };
-
-    executeScript(message, function() {
-        location.reload();
+delbtn.addEventListener('click', () =>  {
+    let changed = false;
+    table.getSelectedRows().forEach( (row) =>  {
+        row.delete();
+        changed = true;
     });
-});
-
-$('#reload').click(function(e) {
-    e.preventDefault();
-    location.reload();
-});
-
-$('#clear').click(function(e) {
-    e.preventDefault();
-    executeScript({ type: type, what: 'clear' }, function() {
-        location.reload();
-    });
-});
-
-$('#import').click(function(e) {
-    e.preventDefault();
-
-    var json = prompt((type === 'L' ? 'Local' : 'Session') + ' storage data (JSON):');
-
-    if (json) {
-        executeScript({ type: type, what: 'import', json: json }, function() {
-            location.reload();
-        });
+    if(changed){
+        hightlightChange();
     }
 });
 
-$('#download').click(function(e) {
-    e.preventDefault();
+discbtn.addEventListener('click', ()=> {
+    window.location.reload();
+});
 
-    loading(true);
+//
+savbtn.addEventListener('click', async ()=> {
+    const data = table.getData();
+    const tabs = await browser.tabs
+    .query({
+      currentWindow: true,
+      active: true
+    });
+    browser.tabs.sendMessage(tabs[0].id, data);
+    unhightlightChange();
+});
 
-    getTab(function(tabId, tabUrl) {
-        var host = tabUrl.split('/')[2];
+expbtn.addEventListener('click', () => {
 
-        function zero(n) {
-            return n < 10 ? '0' + n : n;
-        }
+    let selectedRows = table.getSelectedRows();
 
-        var d = new Date;
-        var date = [zero(d.getFullYear()), zero(d.getMonth() + 1),
-            zero(d.getDate())].join('-') + '_' + [zero(d.getHours()),
-            zero(d.getMinutes()), zero(d.getSeconds())].join('-');
+    // order the selected by position
 
-        var filename = host + '-' + date + '.txt';
-
-        executeScript({ type: type, what: 'export' }, function(response) {
-
-            if (response === undefined) {
-                loading(false);
-                return;
-            }
-
-            var file = new Blob([response]);
-            var a = document.createElement('a');
-            a.href = window.URL.createObjectURL(file);
-            a.download = filename;
-            a.style.display = 'none';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-
-            /*
-            var iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.onload = function() {
-                var doc = this.contentDocument;
-                var file = new Blob([response]);
-                console.log(response);
-                var a = doc.createElement('a');
-                a.href = window.URL.createObjectURL(file);
-                a.download = filename;
-                a.style.display = 'none';
-                doc.body.appendChild(a);
-                window.location = 'data:text/plain;,' + response;
-            };
-            document.body.appendChild(iframe);
-            */
-
-            loading(false);
-        });
+    selectedRows.sort( (a,b) => {
+        return b.getPosition() - a.getPosition();
     });
 
-});
 
+    //let idx_count = 0;
 
-$('#copy').click(function(e) {
-    e.preventDefault();
-
-    loading(true);
-
-    executeScript({ type: type, what: 'export' }, function(response) {
-
-        if (response === undefined) {
-            loading(false);
-            return;
-        }
-
-        var e = document.createElement('textarea');
-        e.style.position = 'fixed';
-        e.style.opacity = 0;
-        e.value = response;
-        document.body.appendChild(e);
-        e.select();
-        document.execCommand('copy');
-        document.body.removeChild(e);
-
-        loading(false);
+    // fixup the export data
+    const expData = [];
+    selectedRows.forEach( (row) => {
+        const rowData = row.getData();
+        //rowData.idx = idx_count;
+        expData.push(rowData);
     });
+    const content = JSON.stringify(expData,null,4);
+    //console.log(content);
+    let dl = document.createElement('a');
+    const href = 'data:application/json;charset=utf-8,' + encodeURIComponent(content);
+    dl.setAttribute('href', href);
+    dl.setAttribute('download', 'export.json');
+    dl.setAttribute('visibility', 'hidden');
+    dl.setAttribute('display', 'none');
+    document.body.appendChild(dl);
+    dl.click();
+    document.body.removeChild(dl);
 });
 
+cpybtn.addEventListener('click', () => {
+
+    let selectedRows = table.getSelectedRows();
+
+    // order the selected by position
+
+    selectedRows.sort( (a,b) => {
+        return b.getPosition() - a.getPosition();
+    });
 
 
-$('#table').on('input', 'input', function() {
-    var $this = $(this);
-    var $parent = $this.parent();
+    //let idx_count = 0;
 
-    var oldKey;
-    var key;
-    var value;
+    // fixup the export data
+    const expData = [];
+    selectedRows.forEach( (row) => {
+        const rowData = row.getData();
+        //rowData.idx = idx_count;
+        expData.push(rowData);
+    });
 
-    // Editing the value
-    if ($parent.attr('class') === 'td-value') {
-        key = $parent.prev().find('input').val();
-        value = $this.val();
-    }
-
-    // Editing the key
-    else {
-        oldKey = $this.data('key');
-        key = $this.val();
-        $this.data('key', key);
-        value = $parent.next().find('input').val();
-    }
-
-    var message = {
-        type: type,
-        what: 'set',
-        oldKey: oldKey,
-        key: key,
-        value: value
-    };
-
-    executeScript(message);
+    const content = JSON.stringify(expData,null,4);
+    navigator.clipboard.writeText(content);
 });
 
-$('#table').on('click', 'td.td-icon', function() {
-    var $this = $(this);
+// delegate to real import Button which is a file selector
+impbtnWrp.addEventListener('click', function() {
+	impbtn.click();
+});
 
-    // minus / open
-    var icon = $this.attr('class').split(' ')[1];
-
-    if (icon === 'minus') {
-
-        var $parent = $this.parent();
-        var key = $this.prev().prev().find('input').val();
-
-        executeScript({ type: type, what: 'remove', key: key }, function() {
-            $parent.fadeOut(100, function() {
-
-                var siblingsLen = $parent.siblings().length;
-
-                $parent.remove();
-                // If removed all, removes the table too
-                if (!siblingsLen) {
-                    $('#table').html(noData())
+// read data from file into current table
+impbtn.addEventListener('input', function () {
+	var file  = this.files[0];
+	var reader = new FileReader();
+            reader.onload = async function() {
+            try {
+                var config = JSON.parse(reader.result);
+                let imported_something = false;
+                config.forEach( (selector) => {
+                    table.addRow({
+                        store: selector.store,
+                        key: selector.key,
+                        value: selector.value,
+                    }, false);
+                    imported_something = true;
+                });
+                if(imported_something) {
+                    hightlightChange();
                 }
-            });
+            } catch (e) {
+                console.error(e);
+            }
+        };
+        reader.readAsText(file);
+});
+
+/*
+function tagValuesLookup (){
+    const rows = table.getRows();
+    const tags = [];
+    for(const row of rows){
+        const cell = row.getCell('tags');
+        const vals = cell.getValue().split(/[\s,]+/);
+        for(const val of vals){
+            if(val !== '' && !tags.includes(val)){
+                tags.push(val);
+            }
+        }
+    }
+    return tags;
+}
+*/
+
+async function onDOMContentLoaded() {
+
+    table = new Tabulator("#mainTable", {
+        height: "480px",
+        //virtualDom:false, //disable virtual DOM rendering
+        layout:"fitDataStretch", //fit columns to width of table
+        //responsiveLayout: "hide",//hide columns that dont fit on the table
+        pagination: false,       //paginate the data
+        //movableRows: false,
+        /*
+        groupBy: ["group"],
+        groupUpdateOnCellEdit:true,
+        groupStartOpen: false,
+        initialSort: [
+            {column: "key", dir: "asc"},
+        ],
+        */
+        columns:[
+            {formatter:"rowSelection", titleFormatter:"rowSelection", hozAlign:"left", headerSort:false, cellClick:function(e, cell){
+                cell.getRow().toggleSelect();
+            }},
+            {title:'Store',field:"store",
+                headerFilter: 'list',
+                editor:"list", editorParams: { values: ["L", "S"] }
+                ,headerFilterParams:{
+                    values: ['S','L'], // get values
+                    verticalNavigation:"hybrid", //navigate to new row when at the top or bottom of the selection list
+                    multiselect: false, //allow multiple entries to be selected
+                },headerFilterPlaceholder:"S+L"
+            },
+            {title:'Key',field:"key", width: "25%", headerFilter:"input", headerFilterPlaceholder:"Text filter",editor:"input" },
+            {title:"Value", field:"value" , width: "45%", headerFilter:"input", headerFilterPlaceholder:"Text filter",editor:"textarea",
+                editorParams: { verticalNavigation: "editor", } ,
+                formatter: "plaintext"
+            },
+        ]
+    });
+
+    // Load data
+    const data = await getTblData();
+    data.forEach((e) => {
+        table.addRow(e,true);
+    });
+
+    /**
+     * Register Table Events
+     */
+    // hlchange if values change
+    table.on("cellEdited", function(cell){
+        if(cell.getValue() !== cell.getOldValue()){
+            hightlightChange();
+        }
+    });
+
+    // todo: determine if the row actually moved
+    table.on("rowMoved", function(){
+        hightlightChange();
+    });
+
+    // invert the selected state of each row
+    /*
+    table.on("groupClick", function(e, group){
+        group.getRows().forEach( (row) => {
+            row.toggleSelect();
         });
-    }
+    });
+    */
 
-    else if (icon === 'open') {
-        var $siblings = $this.siblings();
-        var $inputValue = $siblings.eq(1).find('input');
-        var value = $inputValue.val();
-        var json = parseDeepJSON(value);
+    // after adding a row, open the group it is in and highlight/select it
+    table.on("rowAdded", function(row){
+        /*var group = row.getGroup();
+        group.show();*/
+        row.select();
+    });
 
-        if (typeof json === 'object') {
-            value = syntaxHighlight(JSON.stringify(json, null, 4));
-        }
-        else {
-            value = htmlEscape(value);
-        }
+}
 
-        scrollPosition = document.body.scrollTop;
+async function getTblData() {
+     const data = await browser.tabs.executeScript({
+        file: 'getStorage.js'
+    });
+    return data;
+}
 
-        $('#main').hide();
-        $('#code').html(value);
-        $('#json').show();
+document.addEventListener('DOMContentLoaded', onDOMContentLoaded);
 
-        scroll(0, 0);
-    }
-});
-
-$('#back').click(function(e) {
-    $('#json').hide();
-    $('#code').html('');
-    $('#main').show();
-
-    scroll(0, scrollPosition);
-});
-
-})(window, document, jQuery, chrome);
