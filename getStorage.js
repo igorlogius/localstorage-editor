@@ -6,7 +6,7 @@
             key = localStorage.key(i);
             try {
                 value = JSON.parse(localStorage.getItem(key));
-                value = JSON.stringify(value,null,4);
+                value = JSON.stringify(value,null,1);
             }catch(e){
                 value = localStorage.getItem(key);
             }
@@ -17,7 +17,7 @@
             key = sessionStorage.key(i);
             try {
                 value = JSON.parse(sessionStorage.getItem(key));
-                value = JSON.stringify(value,null,4);
+                value = JSON.stringify(value,null,1);
             }catch(e){
                 value = sessionStorage.getItem(key);
             }
