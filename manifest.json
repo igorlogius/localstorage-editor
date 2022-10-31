@@ -21,13 +21,9 @@
     },
     "manifest_version": 2,
     "name": "LocalStorage Editor",
-    "options_ui": {
-        "open_in_tab": true,
-        "page": "options.html"
-    },
     "permissions": [
         "<all_urls>", 
         "clipboardWrite"
     ],
-    "version": "1.2.6"
+    "version": "1.2.7"
 }
