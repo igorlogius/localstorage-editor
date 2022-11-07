@@ -22,8 +22,9 @@
     "manifest_version": 2,
     "name": "LocalStorage Editor",
     "permissions": [
-        "<all_urls>", 
-        "clipboardWrite"
+        "clipboardRead",
+        "clipboardWrite",
+        "<all_urls>"
     ],
-    "version": "1.2.7"
+    "version": "1.2.8"
 }

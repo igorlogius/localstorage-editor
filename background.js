@@ -16,6 +16,9 @@ browser.runtime.onMessage.addListener(
             text += 'L';
         }
         browser.browserAction.setBadgeText({tabId,text});
+	browser.browserAction.enable(tabId);
     }
 );
+
+browser.browserAction.disable();
 

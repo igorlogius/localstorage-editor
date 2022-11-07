@@ -8,20 +8,23 @@
 <body>
 
     <fieldset>
-        <button id="addbtn" title="add new value" >&#10039; New</button>
+        <button id="addbtn" title="add new value" >&#10039; Add</button>
         <button id="delbtn" title="delete selected "> &#10005; Delete</button>
-        <button id="impbtn_wrapper" title="import from file"> &darr;Import</button>
-        <input id="impbtn" type="file" value="" style="display:none" />
-        <button id="expbtn" title="export selected"> &uarr;Export</button>
-        <button id="cpybtn" title="copy selected"> &uarr;Copy</button>
-        <button id="savbtn" title="save changes" >&#10003; Save</button>
-        <button id="discbtn" title="discard changes" >&#9888; Discard/Reload</button>
+        <button id="savbtn" title="save changes" >&#10003; Submit</button>
+        <button id="discbtn" title="discard changes" >&#9888; Discard</button>
+        <button id="impbtn_wrapper" title="import from clipboard"> &darr; Import</button>
+	<!--input id="impbtn" type="file" value="" style="display:none" /-->
+        <button id="cpybtn" title="copy selected"> &uarr; Copy </button> 
+        <button id="expbtn" title="download selected"> &uarr; Download </button>
             <div style="float:right;">
                 <a target="_blank" href="https://github.com/igorlogius/localstorage-editor/wiki/Basic-Usage" > <button> &#8505; Help </button></a>
             </div>
     </fieldset>
+    <fieldset>
+   	 <div id="log"></div>
+    </fieldset>
 
-    <div id="mainTable" border=1 style="width:100%;" />
+    <div id="mainTable" border=0 style="width:100%;" ></div>
     <script src="tabulator.min.js"></script>
     <script src="popup.js"></script>
 </body>

@@ -4,20 +4,23 @@ let table = null;
 
 // button refs
 const impbtnWrp = document.getElementById('impbtn_wrapper');
-const impbtn = document.getElementById('impbtn');
+//const impbtn = document.getElementById('impbtn');
 const savbtn= document.getElementById('savbtn');
 const discbtn= document.getElementById('discbtn');
 const expbtn = document.getElementById('expbtn');
 const cpybtn = document.getElementById('cpybtn');
 const delbtn = document.getElementById('delbtn');
 const addbtn = document.getElementById('addbtn');
+const log = document.getElementById('log');
 
-function hightlightChange(){
-    savbtn.style.borderColor='red';
+function highlightChange(){
+    savbtn.style.borderColor='green';
+    discbtn.style.borderColor='red';
 }
 
-function unhightlightChange(){
+function unhighlightChange(){
     savbtn.style.borderColor='';
+    discbtn.style.borderColor='';
 }
 
 addbtn.addEventListener('click', async () => {
@@ -27,7 +30,7 @@ addbtn.addEventListener('click', async () => {
         key: '',
         value: '',
     },true); // add at the top
-    hightlightChange();
+    highlightChange();
 });
 
 
@@ -38,7 +41,7 @@ delbtn.addEventListener('click', () =>  {
         changed = true;
     });
     if(changed){
-        hightlightChange();
+        highlightChange();
     }
 });
 
@@ -55,7 +58,8 @@ savbtn.addEventListener('click', async ()=> {
       active: true
     });
     browser.tabs.sendMessage(tabs[0].id, data);
-    unhightlightChange();
+    //unhighlightChange();
+    window.location.reload();
 });
 
 expbtn.addEventListener('click', () => {
@@ -101,7 +105,6 @@ cpybtn.addEventListener('click', () => {
         return b.getPosition() - a.getPosition();
     });
 
-
     //let idx_count = 0;
 
     // fixup the export data
@@ -117,11 +120,32 @@ cpybtn.addEventListener('click', () => {
 });
 
 // delegate to real import Button which is a file selector
-impbtnWrp.addEventListener('click', function() {
-	impbtn.click();
+impbtnWrp.addEventListener('click', async () => {
+        table.deselectRow();
+	try {
+	let clipText = await navigator.clipboard.readText();
+	/**/
+	var config = JSON.parse(clipText);
+	let imported_something = false;
+	config.forEach( (selector) => {
+	    table.addRow({
+		store: selector.store,
+		key: selector.key,
+		value: selector.value,
+	    }, false);
+	    imported_something = true;
+	});
+	if(imported_something) {
+	    highlightChange();
+	}
+	}catch(e){
+   		log.innerText = 'Import failed: \n' + e.toString();
+	}
+	/**/
 });
 
 // read data from file into current table
+/*
 impbtn.addEventListener('input', function () {
 	var file  = this.files[0];
 	var reader = new FileReader();
@@ -138,7 +162,7 @@ impbtn.addEventListener('input', function () {
                     imported_something = true;
                 });
                 if(imported_something) {
-                    hightlightChange();
+                    highlightChange();
                 }
             } catch (e) {
                 console.error(e);
@@ -146,6 +170,7 @@ impbtn.addEventListener('input', function () {
         };
         reader.readAsText(file);
 });
+*/
 
 /*
 function tagValuesLookup (){
@@ -167,7 +192,8 @@ function tagValuesLookup (){
 async function onDOMContentLoaded() {
 
     table = new Tabulator("#mainTable", {
-        height: "480px",
+        /*height: "480px",*/
+	placeholder:"No Items Available",
         //virtualDom:false, //disable virtual DOM rendering
         layout:"fitDataStretch", //fit columns to width of table
         //responsiveLayout: "hide",//hide columns that dont fit on the table
@@ -203,10 +229,6 @@ async function onDOMContentLoaded() {
     });
 
     // Load data
-    const data = await getTblData();
-    data.forEach((e) => {
-        table.addRow(e,true);
-    });
 
     /**
      * Register Table Events
@@ -214,14 +236,17 @@ async function onDOMContentLoaded() {
     // hlchange if values change
     table.on("cellEdited", function(cell){
         if(cell.getValue() !== cell.getOldValue()){
-            hightlightChange();
+            highlightChange();
+	    status.innerText = 'Cell edited';
         }
     });
 
     // todo: determine if the row actually moved
+	/*
     table.on("rowMoved", function(){
-        hightlightChange();
+        highlightChange();
     });
+	*/
 
     // invert the selected state of each row
     /*
@@ -239,12 +264,21 @@ async function onDOMContentLoaded() {
         row.select();
     });
 
+    const data = await getTblData();
+    data.forEach((e) => {
+        table.addRow(e,true);
+    });
 }
 
 async function getTblData() {
-     const data = await browser.tabs.executeScript({
+	let data = [];
+	try {
+     data = await browser.tabs.executeScript({
         file: 'getStorage.js'
     });
+	}catch(e){
+		data = [];
+	}
     return data;
 }
 

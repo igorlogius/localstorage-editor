@@ -7,3 +7,7 @@ body {
 button {
     min-width: 5vw;
 }
+
+#log {
+	width:100%;
+}
