@@ -192,8 +192,8 @@ function tagValuesLookup (){
 async function onDOMContentLoaded() {
 
     table = new Tabulator("#mainTable", {
-        /*height: "480px",*/
-	placeholder:"No Items Available",
+        height: "480px",
+	placeholder:"No Items Found",
         //virtualDom:false, //disable virtual DOM rendering
         layout:"fitDataStretch", //fit columns to width of table
         //responsiveLayout: "hide",//hide columns that dont fit on the table
