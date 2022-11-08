@@ -3,284 +3,261 @@
 let table = null;
 
 // button refs
-const impbtnWrp = document.getElementById('impbtn_wrapper');
-//const impbtn = document.getElementById('impbtn');
-const savbtn= document.getElementById('savbtn');
-const discbtn= document.getElementById('discbtn');
+const impbtn = document.getElementById('impbtn');
+const savbtn = document.getElementById('savbtn');
+const disbtn = document.getElementById('disbtn');
 const expbtn = document.getElementById('expbtn');
 const cpybtn = document.getElementById('cpybtn');
 const delbtn = document.getElementById('delbtn');
 const addbtn = document.getElementById('addbtn');
 const log = document.getElementById('log');
 
+function getTimeStampStr() {
+    const d = new Date();
+    let ts = "";
+    [   d.getFullYear(), d.getMonth()+1, d.getDate()+1,
+        d.getHours(), d.getMinutes(), d.getSeconds()].forEach( (t,i) => {
+        ts = ts + ((i!==3)?"-":"_") + ((t<10)?"0":"") + t;
+    });
+    return ts.substring(1);
+}
+
+async function getTblData() {
+    let data = [];
+    try {
+	data = await browser.tabs.executeScript({
+		file: 'getStorage.js'
+	});
+    }catch(e){
+	data = [];
+    }
+    return data;
+}
+
 function highlightChange(){
     savbtn.style.borderColor='green';
-    discbtn.style.borderColor='red';
+    disbtn.style.borderColor='red';
 }
 
+/*
 function unhighlightChange(){
     savbtn.style.borderColor='';
-    discbtn.style.borderColor='';
+    disbtn.style.borderColor='';
 }
+*/
 
+// add new items
 addbtn.addEventListener('click', async () => {
     table.deselectRow();
     table.addRow({
-        store: '',
-        key: '',
-        value: '',
+	store: '',
+	key: '',
+	value: '',
     },true); // add at the top
     highlightChange();
 });
 
-
+// delete selected items
 delbtn.addEventListener('click', () =>  {
     let changed = false;
     table.getSelectedRows().forEach( (row) =>  {
-        row.delete();
-        changed = true;
+	row.delete();
+	changed = true;
     });
     if(changed){
-        highlightChange();
+	highlightChange();
     }
 });
 
-discbtn.addEventListener('click', ()=> {
+// discard changes / reload 
+disbtn.addEventListener('click', () => {
     window.location.reload();
 });
 
-//
-savbtn.addEventListener('click', async ()=> {
+// save/commit changes
+savbtn.addEventListener('click', async () => {
     const data = table.getData();
-    const tabs = await browser.tabs
-    .query({
-      currentWindow: true,
-      active: true
+    const tabs = await browser.tabs.query({
+	currentWindow: true,
+	active: true
     });
     browser.tabs.sendMessage(tabs[0].id, data);
     //unhighlightChange();
     window.location.reload();
 });
 
-expbtn.addEventListener('click', () => {
-
+// export/download as file
+expbtn.addEventListener('click', async () => {
     let selectedRows = table.getSelectedRows();
-
     // order the selected by position
-
     selectedRows.sort( (a,b) => {
-        return b.getPosition() - a.getPosition();
+	return b.getPosition() - a.getPosition();
     });
-
-
-    //let idx_count = 0;
-
-    // fixup the export data
     const expData = [];
     selectedRows.forEach( (row) => {
-        const rowData = row.getData();
-        //rowData.idx = idx_count;
-        expData.push(rowData);
+	const rowData = row.getData();
+	expData.push(rowData);
     });
-    const content = JSON.stringify(expData,null,4);
-    //console.log(content);
-    let dl = document.createElement('a');
-    const href = 'data:application/json;charset=utf-8,' + encodeURIComponent(content);
-    dl.setAttribute('href', href);
-    dl.setAttribute('download', 'export.json');
-    dl.setAttribute('visibility', 'hidden');
-    dl.setAttribute('display', 'none');
-    document.body.appendChild(dl);
-    dl.click();
-    document.body.removeChild(dl);
+
+    if(expData.length > 0 ){
+
+    const tabs = await browser.tabs.query({
+	currentWindow: true,
+	active: true
+    });
+	    const url = new URL(tabs[0].url);
+
+	const content = JSON.stringify(expData,null,4);
+	let dl = document.createElement('a');
+	const href = 'data:application/json;charset=utf-8,' + encodeURIComponent(content);
+	dl.setAttribute('href', href);
+	dl.setAttribute('download', 'Storage Export ' + getTimeStampStr() + ' ' + encodeURIComponent(url.hostname).replaceAll('.','_') + '.json');
+	dl.setAttribute('visibility', 'hidden');
+	dl.setAttribute('display', 'none');
+	document.body.appendChild(dl);
+	dl.click();
+	document.body.removeChild(dl);
+	log.innerText = 'Downloaded ' + expData.length +  ' items';
+    }else{
+	log.innerText = 'No items to download selected';
+    }
 });
 
+// copy/export to clipboard
 cpybtn.addEventListener('click', () => {
-
     let selectedRows = table.getSelectedRows();
-
     // order the selected by position
-
     selectedRows.sort( (a,b) => {
-        return b.getPosition() - a.getPosition();
+	return b.getPosition() - a.getPosition();
     });
-
-    //let idx_count = 0;
-
-    // fixup the export data
     const expData = [];
     selectedRows.forEach( (row) => {
-        const rowData = row.getData();
-        //rowData.idx = idx_count;
-        expData.push(rowData);
+	const rowData = row.getData();
+	expData.push(rowData);
     });
-
-    const content = JSON.stringify(expData,null,4);
-    navigator.clipboard.writeText(content);
+    if(expData.length > 0){
+	const content = JSON.stringify(expData,null,4);
+    	navigator.clipboard.writeText(content);
+    }
+    if(expData.length > 0){
+    	log.innerText = 'Copied ' + expData.length + ' items to the clipboard';
+    }else{
+        log.innerText = 'No items to copy selected';
+    }
 });
 
-// delegate to real import Button which is a file selector
-impbtnWrp.addEventListener('click', async () => {
-        table.deselectRow();
+// import from clipboard 
+impbtn.addEventListener('click', async () => {
+	table.deselectRow();
 	try {
-	let clipText = await navigator.clipboard.readText();
-	/**/
-	var config = JSON.parse(clipText);
-	let imported_something = false;
-	config.forEach( (selector) => {
-	    table.addRow({
-		store: selector.store,
-		key: selector.key,
-		value: selector.value,
-	    }, false);
-	    imported_something = true;
-	});
-	if(imported_something) {
-	    highlightChange();
-	}
+		const clipText = await navigator.clipboard.readText();
+		const config = JSON.parse(clipText);
+		let import_count = 0;
+		config.forEach( (selector) => {
+			if(typeof selector.store === 'string' &&
+				typeof selector.key === 'string' && 
+				typeof selector.value === 'string' 
+			){
+			    table.addRow({
+				store: selector.store,
+				key: selector.key,
+				value: selector.value,
+			    }, false);
+			    import_count++;
+			}
+		});
+		if(import_count  > 0) {
+		    highlightChange();
+		}
+   		log.innerText = 'Imported ' + import_count + ' items';
 	}catch(e){
    		log.innerText = 'Import failed: \n' + e.toString();
 	}
-	/**/
 });
 
-// read data from file into current table
-/*
-impbtn.addEventListener('input', function () {
-	var file  = this.files[0];
-	var reader = new FileReader();
-            reader.onload = async function() {
-            try {
-                var config = JSON.parse(reader.result);
-                let imported_something = false;
-                config.forEach( (selector) => {
-                    table.addRow({
-                        store: selector.store,
-                        key: selector.key,
-                        value: selector.value,
-                    }, false);
-                    imported_something = true;
-                });
-                if(imported_something) {
-                    highlightChange();
-                }
-            } catch (e) {
-                console.error(e);
-            }
-        };
-        reader.readAsText(file);
-});
-*/
-
-/*
-function tagValuesLookup (){
-    const rows = table.getRows();
-    const tags = [];
-    for(const row of rows){
-        const cell = row.getCell('tags');
-        const vals = cell.getValue().split(/[\s,]+/);
-        for(const val of vals){
-            if(val !== '' && !tags.includes(val)){
-                tags.push(val);
-            }
-        }
-    }
-    return tags;
+function storeHeaderFilter(headerValue, rowValue, rowData, filterParams){
+     return headerValue.length < 1 || headerValue.includes(rowValue);
 }
-*/
 
 async function onDOMContentLoaded() {
 
     table = new Tabulator("#mainTable", {
-        height: "480px",
-	placeholder:"No Items Found",
-        //virtualDom:false, //disable virtual DOM rendering
-        layout:"fitDataStretch", //fit columns to width of table
-        //responsiveLayout: "hide",//hide columns that dont fit on the table
-        pagination: false,       //paginate the data
-        //movableRows: false,
-        /*
-        groupBy: ["group"],
-        groupUpdateOnCellEdit:true,
-        groupStartOpen: false,
-        initialSort: [
-            {column: "key", dir: "asc"},
-        ],
-        */
-        columns:[
-            {formatter:"rowSelection", titleFormatter:"rowSelection", hozAlign:"left", headerSort:false, cellClick:function(e, cell){
-                cell.getRow().toggleSelect();
-            }},
-            {title:'Store',field:"store",
-                headerFilter: 'list',
-                editor:"list", editorParams: { values: ["L", "S"] }
-                ,headerFilterParams:{
-                    values: ['S','L'], // get values
-                    verticalNavigation:"hybrid", //navigate to new row when at the top or bottom of the selection list
-                    multiselect: false, //allow multiple entries to be selected
-                },headerFilterPlaceholder:"S+L"
-            },
-            {title:'Key',field:"key", width: "25%", headerFilter:"input", headerFilterPlaceholder:"Text filter",editor:"input" },
-            {title:"Value", field:"value" , width: "45%", headerFilter:"input", headerFilterPlaceholder:"Text filter",editor:"textarea",
-                editorParams: { verticalNavigation: "editor", } ,
-                formatter: "plaintext"
-            },
-        ]
+	autoColumns: true,
+	height: "480px",
+	placeholder:"No items found",
+	layout:"fitDataStretch", 
+	pagination: false,       
+	movableRows: true,
+	initialSort: [
+	    {column: "store", dir: "asc"},
+	    {column: "key", dir: "asc"}
+	],
+	columns:[
+	    {	
+		formatter:"rowSelection", 
+		titleFormatter:"rowSelection", 
+		hozAlign:"left", 
+		headerSort: false, 
+		cellClick:(e, cell) => { cell.getRow().toggleSelect(); }
+	    },
+	    {	
+		title:'Storage',
+		field:"store",
+		formatter:"lookup", formatterParams:{ "S": "Session", "L": "Local" },
+		hozAlign:"left", 
+		headerFilter: 'list',
+		editor:"list", 
+		editorParams: { values: ["L", "S"] },
+		headerFilterPlaceholder: "Select",
+		headerFilterFunc: storeHeaderFilter, 
+		headerFilterParams: {
+		    values: ['S','L'], 
+		    verticalNavigation: "hybrid", 
+		    multiselect: true 
+		}
+	    },
+	    {
+		title:'Key',
+		field:"key", 
+		width: 200,
+		headerFilter:"input", 
+		headerFilterPlaceholder:"Filter",
+		editor:"input" 
+	    },
+	    {
+		title:"Value", 
+		field:"value",
+		headerFilter:"input",
+		headerFilterPlaceholder:"Filter",
+		editor:"textarea",
+		editorParams: { verticalNavigation: "editor" },
+		formatter: "plaintext"
+	    },
+	]
     });
-
-    // Load data
 
     /**
      * Register Table Events
      */
     // hlchange if values change
     table.on("cellEdited", function(cell){
-        if(cell.getValue() !== cell.getOldValue()){
-            highlightChange();
-	    status.innerText = 'Cell edited';
-        }
+	if(cell.getValue() !== cell.getOldValue()){
+	    highlightChange();
+	}
     });
 
-    // todo: determine if the row actually moved
-	/*
-    table.on("rowMoved", function(){
-        highlightChange();
-    });
-	*/
-
-    // invert the selected state of each row
-    /*
-    table.on("groupClick", function(e, group){
-        group.getRows().forEach( (row) => {
-            row.toggleSelect();
-        });
-    });
-    */
-
-    // after adding a row, open the group it is in and highlight/select it
+    // after adding a row highlight/select it
     table.on("rowAdded", function(row){
-        /*var group = row.getGroup();
-        group.show();*/
-        row.select();
+	row.select();
     });
 
+    // load data
     const data = await getTblData();
     data.forEach((e) => {
-        table.addRow(e,true);
+	table.addRow(e,true);
     });
 }
 
-async function getTblData() {
-	let data = [];
-	try {
-     data = await browser.tabs.executeScript({
-        file: 'getStorage.js'
-    });
-	}catch(e){
-		data = [];
-	}
-    return data;
-}
-
+// init
 document.addEventListener('DOMContentLoaded', onDOMContentLoaded);
 

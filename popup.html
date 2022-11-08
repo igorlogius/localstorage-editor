@@ -1,21 +1,19 @@
 <!DOCTYPE html>
 <head>
     <meta charset="utf-8"></meta>
-    <title>PER Rules</title>
+    <title></title>
     <link href="tabulator.min.css" rel="stylesheet">
     <link href="popup.css" rel="stylesheet">
 </head>
 <body>
-
     <fieldset>
-        <button id="addbtn" title="add new value" >&#10039; Add</button>
-        <button id="delbtn" title="delete selected "> &#10005; Delete</button>
-        <button id="savbtn" title="save changes" >&#10003; Submit</button>
-        <button id="discbtn" title="discard changes" >&#9888; Discard</button>
-        <button id="impbtn_wrapper" title="import from clipboard"> &darr; Import</button>
-	<!--input id="impbtn" type="file" value="" style="display:none" /-->
-        <button id="cpybtn" title="copy selected"> &uarr; Copy </button> 
-        <button id="expbtn" title="download selected"> &uarr; Download </button>
+        <button id="addbtn" title="add new value"     >&#10039;Add</button>
+        <button id="delbtn" title="delete selected"   >&#10005;Delete</button>
+        <button id="savbtn" title="save changes"      >&#10003;Submit</button>
+        <button id="disbtn" title="discard changes"   >&#9888;Discard</button>
+        <button id="impbtn" title="clipboard import"  >&darr;Import</button>
+        <button id="cpybtn" title="copy selected"     >&uarr;Copy</button> 
+        <button id="expbtn" title="download selected" >&uarr;Download</button>
             <div style="float:right;">
                 <a target="_blank" href="https://github.com/igorlogius/localstorage-editor/wiki/Basic-Usage" > <button> &#8505; Help </button></a>
             </div>
@@ -23,7 +21,6 @@
     <fieldset>
    	 <div id="log"></div>
     </fieldset>
-
     <div id="mainTable" border=0 style="width:100%;" ></div>
     <script src="tabulator.min.js"></script>
     <script src="popup.js"></script>

@@ -8,7 +8,7 @@ function detect() {
 }
 
 browser.runtime.onMessage.addListener(
-  (data, sender) => {
+  (data/*, sender*/) => {
         localStorage.clear();
         sessionStorage.clear();
 
