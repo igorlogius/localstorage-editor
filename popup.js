@@ -12,6 +12,25 @@ const cpybtn = document.getElementById('cpybtn');
 const delbtn = document.getElementById('delbtn');
 const addbtn = document.getElementById('addbtn');
 const log = document.getElementById('log');
+const tip = document.getElementById('tip');
+
+const tips =  [
+	'Use ctrl + mousewheel to resize this window'
+	,'Holding shift and click dragging over the row selector column to invert the selection state'
+	,'Use Copy & Import to quickly duplicate items'
+	,'Filtering doenst not change the item selection'
+	,'Copy & Download actions only take selected items into account'
+	,'Imported items get autoselected'
+	,'Cell validation erros get shown, when hovering over a cell'
+	,'Use the row handle to reorder rows for copy or downloading'
+	,'Use shift+enter in a value cell to submit'
+	/*
+	,'Planed Feature: add option page for customization'
+	,'Planed Feature: add option to hide the tips'
+	,'Planed Feature: add JSON Highlighting for value cells'
+	,'Planed Feature: add full window edit view for key+values'
+	*/
+];
 
 let validateAndHighlightTimer;
 
@@ -19,7 +38,6 @@ function delayedValidateAndHighlight(data) {
 
 	clearTimeout(validateAndHighlightTimer);
 	validateAndHighlightTimer = setTimeout(()=> {
-		console.debug('delayedValidateAndHighlight', data);
 		table.validate();
 		if(dataDifferentFromInital(data)){
 			highlightChange();
@@ -247,7 +265,10 @@ function storeHeaderFilter(headerValue, rowValue /*, rowData, filterParams*/){
 
 async function onDOMContentLoaded() {
 
+	tip.innerText = "Tip: " + tips[Math.floor((Math.random()*tips.length))];
+
     table = new Tabulator("#mainTable", {
+	selectable: true,
 	autoColumns: true,
 	height: "480px",
 	placeholder:"No items found",
@@ -255,7 +276,6 @@ async function onDOMContentLoaded() {
 	pagination: false,       
 	movableRows: true,
 	validationMode:"highlight",
-	selectableRangeMode:"click",
 	initialSort: [
 	    {column: "key", dir: "asc"},
 	    {column: "store", dir: "asc"}
@@ -272,8 +292,11 @@ async function onDOMContentLoaded() {
 	    {	
 		formatter:"rowSelection", 
 		titleFormatter:"rowSelection", 
+		titleFormatterParams:{
+			rowRange:"active" //only toggle the values of the active filtered rows
+    		},
 		hozAlign:"left", 
-		headerSort: false, 
+		headerSort: false,
 		cellClick:(e, cell) => { cell.getRow().toggleSelect(); },
 		width:30, 
 		minWidth:30
@@ -281,6 +304,15 @@ async function onDOMContentLoaded() {
 	    {	
 		title:'Storage',
 		field:"store",
+		cellMouseOver:function(e, cell){
+        		//e - the event object
+		        //cell - cell component
+			const valid = cell.validate();
+			if(valid !== true){
+				showLogMessage('Cell Validation Errors: ' +  valid.map( el => el.type ).join(','));
+			}
+
+    		},
 		hozAlign:"left", 
 		headerFilter: 'list',
 		editor:"list", 
@@ -298,6 +330,14 @@ async function onDOMContentLoaded() {
 		title:'Key',
 		field:"key", 
 		validator:["unique", "required"],
+		cellMouseOver:function(e, cell){
+        		//e - the event object
+		        //cell - cell component
+			const valid = cell.validate();
+			if(valid !== true){
+				showLogMessage('Cell Validation Errors: ' +  valid.map( el => el.type ).join(','));
+			}
+    		},
 		width: "25%",
 		headerFilter:"input", 
 		headerFilterPlaceholder:"Filter",
@@ -309,7 +349,10 @@ async function onDOMContentLoaded() {
 		headerFilter:"input",
 		headerFilterPlaceholder:"Filter",
 		editor:"textarea",
-		editorParams: { verticalNavigation: "editor" },
+		editorParams: { 
+			verticalNavigation: "editor",
+			shiftEnterSubmit: true
+		},
 		formatter: "plaintext"
 	    },
 	]
