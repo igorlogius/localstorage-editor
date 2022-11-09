@@ -20,10 +20,10 @@ browser.runtime.onMessage.addListener(
             key = el.key;
             value = el.value;
             switch(store){
-                case 'L':
+                case 'Local':
                     localStorage.setItem(key,value);
                 break;
-                case 'S':
+                case 'Session':
                     sessionStorage.setItem(key,value);
                 break;
             }

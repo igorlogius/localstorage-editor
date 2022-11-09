@@ -2,7 +2,7 @@
     let i=0,key,value,store;
     let ret = [];
     for (i=0;i<localStorage.length;i++) {
-            store = 'L';
+            store = 'Local';
             key = localStorage.key(i);
             try {
                 value = JSON.parse(localStorage.getItem(key));
@@ -13,7 +13,7 @@
             ret.push({store, key,value});
     }
     for (i=0;i<sessionStorage.length;i++) {
-            store = 'S';
+            store = 'Session';
             key = sessionStorage.key(i);
             try {
                 value = JSON.parse(sessionStorage.getItem(key));

@@ -1,6 +1,7 @@
 /* global browser Tabulator */
 
 let table = null;
+let tableData = null; 
 
 // button refs
 const impbtn = document.getElementById('impbtn');
@@ -11,6 +12,57 @@ const cpybtn = document.getElementById('cpybtn');
 const delbtn = document.getElementById('delbtn');
 const addbtn = document.getElementById('addbtn');
 const log = document.getElementById('log');
+
+let validateAndHighlightTimer;
+
+function delayedValidateAndHighlight(data) {
+
+	clearTimeout(validateAndHighlightTimer);
+	validateAndHighlightTimer = setTimeout(()=> {
+		console.debug('delayedValidateAndHighlight', data);
+		table.validate();
+		if(dataDifferentFromInital(data)){
+			highlightChange();
+		}else{
+			unhighlightChange();
+		}
+	},1000);
+}
+
+let logTimerId;
+
+function showLogMessage(msg){
+	log.innerText = msg; 
+	clearTimeout(logTimerId);
+	logTimerId = setTimeout(()=> {
+	   log.innerText = '';
+	},5000);
+}
+
+function dataDifferentFromInital(newTableData){
+
+	//const newTableData = table.getData();
+
+	if(tableData.length !== newTableData.length){
+		return true;
+	}
+	// now we need to compare alle elements
+	let equalFound;
+	for(const i of newTableData){
+		equalFound = false;
+		for(const j of tableData){
+			if(i.store === j.store &&
+			   i.key === j.key &&
+			   i.value === j.value ){
+				equalFound = true;
+			}
+		}
+		if(!equalFound){
+			return true;
+		}
+	}
+	return false;
+}
 
 function getTimeStampStr() {
     const d = new Date();
@@ -39,12 +91,10 @@ function highlightChange(){
     disbtn.style.borderColor='red';
 }
 
-/*
 function unhighlightChange(){
     savbtn.style.borderColor='';
     disbtn.style.borderColor='';
 }
-*/
 
 // add new items
 addbtn.addEventListener('click', async () => {
@@ -54,19 +104,24 @@ addbtn.addEventListener('click', async () => {
 	key: '',
 	value: '',
     },true); // add at the top
-    highlightChange();
+    //highlightChange();
 });
 
 // delete selected items
 delbtn.addEventListener('click', () =>  {
-    let changed = false;
+    //let changed = false;
+	/*
     table.getSelectedRows().forEach( (row) =>  {
 	row.delete();
-	changed = true;
+	//changed = true;
     });
+	*/
+	table.deleteRow(table.getSelectedRows());
+/*
     if(changed){
 	highlightChange();
     }
+    */
 });
 
 // discard changes / reload 
@@ -76,6 +131,11 @@ disbtn.addEventListener('click', () => {
 
 // save/commit changes
 savbtn.addEventListener('click', async () => {
+    if(table.validate() !== true){
+	table.alert("Validation failed. Submit cancelled!","error");
+	setTimeout(function() { table.clearAlert(); },2500);
+	return;
+    }
     const data = table.getData();
     const tabs = await browser.tabs.query({
 	currentWindow: true,
@@ -83,7 +143,11 @@ savbtn.addEventListener('click', async () => {
     });
     browser.tabs.sendMessage(tabs[0].id, data);
     //unhighlightChange();
-    window.location.reload();
+    table.alert("Syncing Storage ... ","msg");
+    setTimeout(function() { 
+	//table.clearAlert(); 
+    	window.location.reload();  // keep it simple
+    },1000);
 });
 
 // export/download as file
@@ -117,9 +181,9 @@ expbtn.addEventListener('click', async () => {
 	document.body.appendChild(dl);
 	dl.click();
 	document.body.removeChild(dl);
-	log.innerText = 'Downloaded ' + expData.length +  ' items';
+	showLogMessage('Downloaded ' + expData.length +  ' items');
     }else{
-	log.innerText = 'No items to download selected';
+	showLogMessage('No items to download selected');
     }
 });
 
@@ -140,9 +204,9 @@ cpybtn.addEventListener('click', () => {
     	navigator.clipboard.writeText(content);
     }
     if(expData.length > 0){
-    	log.innerText = 'Copied ' + expData.length + ' items to the clipboard';
+    	showLogMessage('Copied ' + expData.length + ' items to clipboard');
     }else{
-        log.innerText = 'No items to copy selected';
+ 	showLogMessage('No items to copy selected');
     }
 });
 
@@ -166,16 +230,18 @@ impbtn.addEventListener('click', async () => {
 			    import_count++;
 			}
 		});
+		/*
 		if(import_count  > 0) {
 		    highlightChange();
 		}
-   		log.innerText = 'Imported ' + import_count + ' items';
+		*/
+   		showLogMessage('Imported ' + import_count + ' items');
 	}catch(e){
-   		log.innerText = 'Import failed: \n' + e.toString();
+   		showLogMessage('Import failed: \n' + e.toString());
 	}
 });
 
-function storeHeaderFilter(headerValue, rowValue, rowData, filterParams){
+function storeHeaderFilter(headerValue, rowValue /*, rowData, filterParams*/){
      return headerValue.length < 1 || headerValue.includes(rowValue);
 }
 
@@ -188,38 +254,51 @@ async function onDOMContentLoaded() {
 	layout:"fitDataStretch", 
 	pagination: false,       
 	movableRows: true,
+	validationMode:"highlight",
+	selectableRangeMode:"click",
 	initialSort: [
-	    {column: "store", dir: "asc"},
-	    {column: "key", dir: "asc"}
+	    {column: "key", dir: "asc"},
+	    {column: "store", dir: "asc"}
 	],
 	columns:[
+	    {
+	        rowHandle:true, 
+		formatter:"handle", 
+		headerSort:false, 
+		frozen:true, 
+		width:30, 
+		minWidth:30
+	    },
 	    {	
 		formatter:"rowSelection", 
 		titleFormatter:"rowSelection", 
 		hozAlign:"left", 
 		headerSort: false, 
-		cellClick:(e, cell) => { cell.getRow().toggleSelect(); }
+		cellClick:(e, cell) => { cell.getRow().toggleSelect(); },
+		width:30, 
+		minWidth:30
 	    },
 	    {	
 		title:'Storage',
 		field:"store",
-		formatter:"lookup", formatterParams:{ "S": "Session", "L": "Local" },
 		hozAlign:"left", 
 		headerFilter: 'list',
 		editor:"list", 
-		editorParams: { values: ["L", "S"] },
+		editorParams: { values: ["Local", "Session"] },
 		headerFilterPlaceholder: "Select",
 		headerFilterFunc: storeHeaderFilter, 
 		headerFilterParams: {
-		    values: ['S','L'], 
+		    values: ['Local','Session'], 
 		    verticalNavigation: "hybrid", 
 		    multiselect: true 
-		}
+		},
+		validator:["in:Local|Session", "required"],
 	    },
 	    {
 		title:'Key',
 		field:"key", 
-		width: 200,
+		validator:["unique", "required"],
+		width: "25%",
 		headerFilter:"input", 
 		headerFilterPlaceholder:"Filter",
 		editor:"input" 
@@ -239,23 +318,37 @@ async function onDOMContentLoaded() {
     /**
      * Register Table Events
      */
-    // hlchange if values change
-    table.on("cellEdited", function(cell){
-	if(cell.getValue() !== cell.getOldValue()){
-	    highlightChange();
-	}
-    });
 
     // after adding a row highlight/select it
     table.on("rowAdded", function(row){
 	row.select();
     });
 
+
     // load data
     const data = await getTblData();
     data.forEach((e) => {
 	table.addRow(e,true);
     });
+
+    tableData = table.getData();
+
+     // do this after the inital data load 
+    // hlchange any values changed
+	// and call validate afterwards
+    	table.on("dataChanged", function(data){
+        //data - the updated table data
+		delayedValidateAndHighlight(data);
+		/*
+	setTimeout(() => { table.validate() }, 1000);
+	if(dataDifferentFromInital(data)){
+		highlightChange();
+	}else{
+		unhighlightChange();
+	}
+	*/
+    });
+
 }
 
 // init
