@@ -173,7 +173,7 @@ expbtn.addEventListener('click', async () => {
     let selectedRows = table.getSelectedRows();
     // order the selected by position
     selectedRows.sort( (a,b) => {
-	return b.getPosition() - a.getPosition();
+	return a.getPosition() - b.getPosition();
     });
     const expData = [];
     selectedRows.forEach( (row) => {
