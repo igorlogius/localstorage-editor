@@ -53,7 +53,7 @@ function showLogMessage(msg){
 	log.innerText = msg; 
 	clearTimeout(logTimerId);
 	logTimerId = setTimeout(()=> {
-	   log.innerText = '';
+	   log.innerText = '...';
 	},5000);
 }
 
@@ -263,6 +263,28 @@ function storeHeaderFilter(headerValue, rowValue /*, rowData, filterParams*/){
      return headerValue.length < 1 || headerValue.includes(rowValue);
 }
 
+var uniqueKey = function(cell, value, parameters){
+       //cell - the cell component for the edited cell
+       //value - the new input value of the cell
+       //parameters - the parameters passed in with the validator
+
+       //return value % parameters.divisor; //don't allow values divisible by divisor ;
+       
+       //const val = cell.getValue();
+       let tmp; // undefined
+
+       for(let row of table.getData()) {
+               if(row.key === value){
+                       if(tmp === row.store){
+                               return false; // find the same thing again
+                       }else{
+                               tmp = row.store; // find itself  or something else 
+                       }
+               }
+       }
+       return true;
+}
+
 async function onDOMContentLoaded() {
 
 	tip.innerText = "Tip: " + tips[Math.floor((Math.random()*tips.length))];
@@ -270,7 +292,7 @@ async function onDOMContentLoaded() {
     table = new Tabulator("#mainTable", {
 	selectable: true,
 	autoColumns: true,
-	height: "480px",
+	height: "460px",
 	placeholder:"No items found",
 	layout:"fitDataStretch", 
 	pagination: false,       
@@ -329,13 +351,25 @@ async function onDOMContentLoaded() {
 	    {
 		title:'Key',
 		field:"key", 
-		validator:["unique", "required"],
+		validator:["required", 
+                       {
+                               type: uniqueKey,
+                               parameters: {errmsg: 'not unique'}
+                       }
+                ],
 		cellMouseOver:function(e, cell){
         		//e - the event object
 		        //cell - cell component
 			const valid = cell.validate();
 			if(valid !== true){
-				showLogMessage('Cell Validation Errors: ' +  valid.map( el => el.type ).join(','));
+				//console.debug(JSON.stringify(valid,null,4));
+				showLogMessage('Cell Validation Errors: ' +  valid.map( el => {
+					if( el.type === 'function'){
+						return el.parameters.errmsg;
+					}
+					return el.type;
+
+				}).join(','));
 			}
     		},
 		width: "25%",
