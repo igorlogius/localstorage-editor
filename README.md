@@ -17,7 +17,6 @@ Add, edit, copy, remove, export and import local- and session- storage data
     </li>
     <li><b>Cost/Payment:</b>
         This Add-on is and forever will be subscription and payment free to use for everyone however they like.
-        If you are feeling generous you can send me a tip via my bitcoin address 35WK2GqZHPutywCdbHKa9BQ52GND3Pd6h4
     </li>
     <li><b>Stars/Reviews:</b>
         If you found this add-on useful leave some stars or a review so others have an  easier time finding it.
