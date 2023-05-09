@@ -1,17 +1,17 @@
 body {
-    background: lightgray;
-    width: 700px;
-    padding: 3px;
+  background: lightgray;
+  width: 700px;
+  padding: 3px;
 }
 
 button {
-    min-width: 5vw;
+  min-width: 5vw;
 }
 
 #log {
-	width:100%;
+  width: 100%;
 }
 
 #tip {
-	font-size: 0.8em;
+  font-size: 0.8em;
 }

@@ -1,30 +1,23 @@
 {
-    "author": "igorlogius",
-    "background": {
-        "scripts": ["background.js"]
-    },
-    "browser_action": { 
-        "default_popup": "popup.html" 
-    },
-    "content_scripts": [
-        {
-          "js": [
-            "content.js"
-          ],
-          "matches": [
-            "<all_urls>"
-          ]
-        }
-    ],
-    "icons": { 
-        "128": "icon.png"
-    },
-    "manifest_version": 2,
-    "name": "LocalStorage Editor",
-    "permissions": [
-        "clipboardRead",
-        "clipboardWrite",
-        "<all_urls>"
-    ],
-    "version": "1.3.13"
+  "author": "igorlogius",
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "browser_action": {
+    "default_area": "navbar",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "js": ["content.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "icons": {
+    "128": "icon.png"
+  },
+  "manifest_version": 2,
+  "name": "LocalStorage Editor",
+  "permissions": ["clipboardRead", "clipboardWrite", "<all_urls>"],
+  "version": "1.3.13"
 }
