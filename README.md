@@ -1,5 +1,11 @@
 Add, edit, copy, remove, export and import local- and session- storage data
 
+
+
+https://github.com/igorlogius/localstorage-editor/assets/67047467/1b77950f-cbc2-4c2f-bbf1-ff0b5e6ae3db
+
+
+
 <b>Usage:</b>
 <ol>
     <li>install the addon</li>
