@@ -1,10 +1,8 @@
 Add, edit, copy, remove, export and import local- and session- storage data
 
-
+<b>Short Demo Video:</b>
 
 https://github.com/igorlogius/localstorage-editor/assets/67047467/1b77950f-cbc2-4c2f-bbf1-ff0b5e6ae3db
-
-
 
 <b>Usage:</b>
 <ol>
@@ -16,6 +14,10 @@ https://github.com/igorlogius/localstorage-editor/assets/67047467/1b77950f-cbc2-
 
 <b>Notes:</b>
 <ol>
+    <li><b>Can/Should  i trust this addon?</b>
+        You can view the source code by either visiting the Homepage/Support Site or just saving/downloading the XPI (which is really just a ZIP Archive) and then extract it locally. The Sources in the XPI should be unofuscated and unminified (HTML,CSS and JS), so it's as easy to read as possible. Alternatives you can also use the <a href="https://addons.mozilla.org/en-US/firefox/addon/crxviewer/">CRX Viewer Extension by Rob W</a> to inspect the XPI sources. If you have an questions, you can also open an issue on the support site and i'll try and answer to the best of my abilities.
+        If you are no programmer and are still feeling unsure, you might want to visit one of the official or unoffical mozilla communities and ask if someone there with more knowlege can take a look. Examples: https://reddit.com/r/firefox , https://lemmy.world/c/firefox or https://chat.mozilla.org/#/room/#addons:mozilla.org
+    </li>
     <li><b>Permissions:</b>
         This add-on tries to use the minimal number of required permissions to successfully fullfill its intended purpose.
         If you think this could be improved please let me know by opening an issue and i will try to look into it.
@@ -23,6 +25,7 @@ https://github.com/igorlogius/localstorage-editor/assets/67047467/1b77950f-cbc2-
     </li>
     <li><b>Cost/Payment:</b>
         This Add-on is and forever will be subscription and payment free to use for everyone however they like.
+        If you are feeling generous you can send me a tip via my bitcoin address 35WK2GqZHPutywCdbHKa9BQ52GND3Pd6h4
     </li>
     <li><b>Stars/Reviews:</b>
         If you found this add-on useful leave some stars or a review so others have an  easier time finding it.
