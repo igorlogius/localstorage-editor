@@ -1,10 +1,6 @@
 /* global browser */
 
 browser.runtime.onMessage.addListener((data, sender) => {
-  //console.debug(data,sender);
-  //return Promise.resolve('done');
-  // return false;
-  // change pageAction icon depending if data is available
   let text = "";
   let tabId = sender.tab.id;
 

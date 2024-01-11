@@ -15,7 +15,6 @@ const log = document.getElementById("log");
 const tip = document.getElementById("tip");
 
 const tips = [
-  "Use ctrl + mousewheel to resize this window",
   "Holding shift and click dragging over the row selector column to invert the selection state",
   "Use Copy & Import to quickly duplicate items",
   "Filtering doenst not change the item selection",
@@ -24,12 +23,6 @@ const tips = [
   "Cell validation erros get shown, when hovering over a cell",
   "Use the row handle to reorder rows for copy or downloading",
   "Use shift+enter in a value cell to submit",
-  /*
-	,'Planed Feature: add option page for customization'
-	,'Planed Feature: add option to hide the tips'
-	,'Planed Feature: add JSON Highlighting for value cells'
-	,'Planed Feature: add full window edit view for key+values'
-	*/
 ];
 
 let validateAndHighlightTimer;
