@@ -77,7 +77,7 @@ function getTimeStampStr() {
   [
     d.getFullYear(),
     d.getMonth() + 1,
-    d.getDate() + 1,
+    d.getDate(),
     d.getHours(),
     d.getMinutes(),
     d.getSeconds(),
