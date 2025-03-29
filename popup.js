@@ -1,5 +1,10 @@
 /* global browser Tabulator */
 
+async function getFromStorage(type, id, fallback) {
+  let tmp = await browser.storage.local.get(id);
+  return typeof tmp[id] === type ? tmp[id] : fallback;
+}
+
 let table = null;
 let tableData = null;
 
@@ -420,6 +425,7 @@ async function onDOMContentLoaded() {
   /**
    * Register Table Events
    */
+  const checkState = await getFromStorage("boolean", "checkState", false);
 
   // after adding a row highlight/select it
   table.on("rowAdded", function (row) {
@@ -428,8 +434,16 @@ async function onDOMContentLoaded() {
 
   // load data
   const data = await getTblData();
-  data.forEach((e) => {
+  data.forEach(async (e, index) => {
     table.addRow(e, true);
+
+    // after processing the last element
+    if (index === data.length - 1) {
+      if (!checkState) {
+        // when unchecked, deselect everything after inital load
+        table.deselectRow();
+      }
+    }
   });
 
   tableData = table.getData();
@@ -450,6 +464,60 @@ async function onDOMContentLoaded() {
 	*/
   });
 }
+
+function onChange(evt) {
+  let id = evt.target.id;
+  let el = document.getElementById(id);
+
+  let value = el.type === "checkbox" ? el.checked : el.value;
+  let obj = {};
+
+  //console.log(id,value, el.type,el.min);
+  if (value === "") {
+    return;
+  }
+  if (el.type === "number") {
+    try {
+      value = parseInt(value);
+      if (isNaN(value)) {
+        value = el.min;
+      }
+      if (value < el.min) {
+        value = el.min;
+      }
+    } catch (e) {
+      value = el.min;
+    }
+  }
+
+  obj[id] = value;
+
+  //console.log(id, value);
+  browser.storage.local.set(obj).catch(console.error);
+}
+
+["checkState"].map((id) => {
+  browser.storage.local
+    .get(id)
+    .then((obj) => {
+      let el = document.getElementById(id);
+      let val = obj[id];
+
+      if (typeof val !== "undefined") {
+        if (el.type === "checkbox") {
+          el.checked = val;
+        } else {
+          el.value = val;
+        }
+      } else {
+        el.value = 0;
+      }
+    })
+    .catch(console.error);
+
+  let el = document.getElementById(id);
+  el.addEventListener("input", onChange);
+});
 
 // init
 document.addEventListener("DOMContentLoaded", onDOMContentLoaded);
