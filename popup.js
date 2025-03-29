@@ -118,7 +118,7 @@ addbtn.addEventListener("click", async () => {
       key: "",
       value: "",
     },
-    true
+    true,
   ); // add at the top
   //highlightChange();
 });
@@ -199,7 +199,7 @@ expbtn.addEventListener("click", async () => {
         getTimeStampStr() +
         " " +
         encodeURIComponent(url.hostname).replaceAll(".", "_") +
-        ".json"
+        ".json",
     );
     dl.setAttribute("visibility", "hidden");
     dl.setAttribute("display", "none");
@@ -254,7 +254,7 @@ impbtn.addEventListener("click", async () => {
             key: selector.key,
             value: selector.value,
           },
-          false
+          false,
         );
         import_count++;
       }
@@ -344,7 +344,7 @@ async function onDOMContentLoaded() {
           const valid = cell.validate();
           if (valid !== true) {
             showLogMessage(
-              "Cell Validation Errors: " + valid.map((el) => el.type).join(",")
+              "Cell Validation Errors: " + valid.map((el) => el.type).join(","),
             );
           }
         },
@@ -386,7 +386,7 @@ async function onDOMContentLoaded() {
                     }
                     return el.type;
                   })
-                  .join(",")
+                  .join(","),
             );
           }
         },
@@ -394,6 +394,11 @@ async function onDOMContentLoaded() {
         headerFilter: "input",
         headerFilterPlaceholder: "Filter",
         editor: "input",
+        editorParams: {
+          elementAttributes: {
+            spellcheck: "false",
+          },
+        },
       },
       {
         title: "Value",
@@ -402,6 +407,9 @@ async function onDOMContentLoaded() {
         headerFilterPlaceholder: "Filter",
         editor: "textarea",
         editorParams: {
+          elementAttributes: {
+            spellcheck: "false",
+          },
           verticalNavigation: "editor",
           shiftEnterSubmit: true,
         },
