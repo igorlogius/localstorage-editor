@@ -300,7 +300,6 @@ async function onDOMContentLoaded() {
   tip.innerText = "Tip: " + tips[Math.floor(Math.random() * tips.length)];
 
   table = new Tabulator("#mainTable", {
-    selectable: true,
     autoColumns: true,
     height: "460px",
     placeholder: "No items found",
